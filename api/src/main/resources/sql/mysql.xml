@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<sql>
+    <getTableList>
+        SELECT
+        table_name,
+        table_comment,
+        create_time,
+        update_time
+        FROM
+        information_schema.TABLES
+        WHERE
+        table_schema = ( SELECT DATABASE ( ) )
+        AND table_name NOT LIKE 'qrtz_%'
+        AND table_name NOT LIKE 'gen_%'
+        AND table_name NOT IN ( SELECT table_name FROM gen_table )
+    </getTableList>
+</sql>
