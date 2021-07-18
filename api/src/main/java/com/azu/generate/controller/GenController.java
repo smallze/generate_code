@@ -5,10 +5,7 @@ import com.azu.generate.domain.TableVO;
 import com.azu.generate.domain.dto.DBConnectDTO;
 import com.azu.generate.service.GenTableService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -23,6 +20,8 @@ public class GenController {
 
     @Autowired
     private GenTableService genTableService;
+
+
 
     /**
      * 获取表结构

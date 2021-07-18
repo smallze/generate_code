@@ -2,4 +2,7 @@ server:
   port: 8520
 spring:
   application:
-    name:
+    name: generate_code
+  thymeleaf:
+    prefix: classpath:/templates/
+

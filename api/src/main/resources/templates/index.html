@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>generate code</title>
+</head>
+<style type="text/css">
+    .db-container{
+        text-align: center;
+    }
+    ul{
+        list-style:none;
+    }
+    .label-container{
+        width:200px;
+        display: table-cell;
+    }
+
+    input{
+        display: table-cell;
+    }
+</style>
+<body>
+
+<div class="db-container">
+    <ul>
+        <li>
+            <div class="label-container">数据库类型</div>
+            <input type="text" name="dbType" id="dbType" />
+        </li>
+        <li>
+            <div class="label-container">数据库名称</div>
+            <input type="text" name="dbName" id="dbName" />
+        </li>
+        <li>
+            <div class="label-container">IP</div>
+            <input type="text" name="dbIP" id="dbIP" />
+        </li>
+        <li>
+            <div class="label-container">端口</div>
+            <input type="text" name="dbPort" id="dbPort" />
+        </li>
+        <li>
+            <div class="label-container">用户名</div>
+            <input type="text" name="userName" id="userName" />
+        </li>
+        <li>
+            <div class="label-container">密码</div>
+            <input type="text" name="password" id="password" />
+        </li>
+    </ul>
+    <input type="button" value="连接" onclick="connectDB()" />
+</div>
+
+</body>
+<script type="text/javascript">
+    function connectDB(){
+        console.log("connect db");
+    }
+</script>
+</html>

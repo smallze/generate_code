@@ -3,6 +3,7 @@ package com.azu.generate.service;
 import com.azu.generate.dblink.DBUtil;
 import com.azu.generate.dblink.XmlReader;
 import com.azu.generate.domain.DBConnectExt;
+import com.azu.generate.domain.TableColumnVO;
 import com.azu.generate.domain.TableVO;
 import com.azu.generate.domain.dto.DBConnectDTO;
 import org.springframework.stereotype.Service;
@@ -55,5 +56,9 @@ public class GenTableService {
             e.printStackTrace();
         }
         return tableList;
+    }
+
+    public List<TableColumnVO> getTableColumns(){
+        return null;
     }
 }
