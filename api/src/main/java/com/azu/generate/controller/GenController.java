@@ -29,7 +29,8 @@ public class GenController {
      * @param dto
      * @return
      */
-    @PostMapping(value = "/getTables")
+    @RequestMapping(value = "/getTables", method = RequestMethod.POST)
+    @ResponseBody
     public List<TableVO> getTables(@RequestBody DBConnectDTO dto) {
         List<TableVO> tables = genTableService.getTableList(dto);
         return tables;

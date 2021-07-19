@@ -3,59 +3,163 @@
 <head>
     <meta charset="UTF-8">
     <title>generate code</title>
+    <!--引入 element-ui 的样式，-->
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
 </head>
 <style type="text/css">
-    .db-container{
+    .db-container {
+        margin: 80px 100px;
         text-align: center;
     }
-    ul{
-        list-style:none;
+
+    ul {
+        list-style: none;
     }
-    .label-container{
-        width:200px;
+
+    .label-container {
+        width: 200px;
         display: table-cell;
     }
 
-    input{
+    input {
         display: table-cell;
     }
 </style>
 <body>
+<div id="app">
+    <div class="db-container">
+        <el-form ref="form" :model="form" label-width="100px">
+            <el-row>
+                <h2>一键生成代码</h2>
+            </el-row>
+            <el-row>
+                <el-col :span="12">
+                    <el-form-item label="数据库类型">
+                        <el-select v-model="params.dbType" placeholder="请选择" style="width: 100%">
+                            <el-option
+                                    v-for="item in dbTypeList"
+                                    :key="item.value"
+                                    :label="item.label"
+                                    :value="item.value">
+                            </el-option>
+                        </el-select>
+                    </el-form-item>
+                </el-col>
+                <el-col :span="12">
+                    <el-form-item label="数据库名称">
+                        <el-input type="text" name="dbName" id="dbName" v-model="params.dbName"/>
+                    </el-form-item>
+                </el-col>
+            </el-row>
+            <el-row>
+                <el-col :span="12">
+                    <el-form-item label="IP">
+                        <el-input type="text" name="dbIP" id="dbIP" v-model="params.dbIP"/>
+                    </el-form-item>
+                </el-col>
+                <el-col :span="12">
+                    <el-form-item label="端口">
+                        <el-input type="text" name="dbPort" id="dbPort" v-model="params.dbPort"/>
+                    </el-form-item>
+                </el-col>
+            </el-row>
+            <el-row>
+                <el-col :span="12">
+                    <el-form-item label="用户名">
+                        <el-input type="text" name="userName" id="userName" v-model="params.userName"/>
+                    </el-form-item>
+                </el-col>
+                <el-col :span="12">
+                    <el-form-item label="密码">
+                        <el-input type="password" name="password" id="password" v-model="params.password"/>
+                    </el-form-item>
+                </el-col>
+            </el-row>
+            <el-row>
+                <el-button type="primary" @click="connectDB">连接</el-button>
+            </el-row>
+            <!--<el-select v-model>-->
 
-<div class="db-container">
-    <ul>
-        <li>
-            <div class="label-container">数据库类型</div>
-            <input type="text" name="dbType" id="dbType" />
-        </li>
-        <li>
-            <div class="label-container">数据库名称</div>
-            <input type="text" name="dbName" id="dbName" />
-        </li>
-        <li>
-            <div class="label-container">IP</div>
-            <input type="text" name="dbIP" id="dbIP" />
-        </li>
-        <li>
-            <div class="label-container">端口</div>
-            <input type="text" name="dbPort" id="dbPort" />
-        </li>
-        <li>
-            <div class="label-container">用户名</div>
-            <input type="text" name="userName" id="userName" />
-        </li>
-        <li>
-            <div class="label-container">密码</div>
-            <input type="text" name="password" id="password" />
-        </li>
-    </ul>
-    <input type="button" value="连接" onclick="connectDB()" />
+            <!--</el-select>-->
+        </el-form>
+    </div>
 </div>
-
 </body>
+<!-- 必须先引入vue，  后使用element-ui -->
+<script src="https://cdn.jsdelivr.net/npm/vue@2.5.17/dist/vue.js"></script>
+<!-- 引入element 的组件库-->
+<script src="https://unpkg.com/element-ui/lib/index.js"></script>
 <script type="text/javascript">
-    function connectDB(){
-        console.log("connect db");
-    }
+    new Vue({
+        el: '#app',
+        data: {
+            dbTypeList: [{
+                label: 'mysql',
+                value: 'mysql'
+            }, {
+                label: 'oracle',
+                value: 'oracle'
+            }],
+            params: {
+                dbType: '',
+                dbName: '',
+                dbIP: '',
+                dbPort: '',
+                userName: '',
+                password: ''
+            },
+            tableList: [],
+        },
+        methods: {
+            connectDB: function () {
+                console.log("connect db");
+                var dbType = this.params.dbType;
+                var dbName = this.params.dbName;
+                var dbIP = this.params.dbIP;
+                var dbPort = this.params.dbPort
+                var userName = this.params.userName;
+                var password = this.params.password;
+                if (this.isEmpty(dbType) || this.isEmpty(dbName) || this.isEmpty(dbIP) || this.isEmpty(dbPort) || this.isEmpty(userName) || this.isEmpty(password)) {
+                    alert("请输入相关参数")
+                    return false;
+                }
+                var params = {
+                    "dbType": dbType,
+                    "dbName": dbName,
+                    "dbIP": dbIP,
+                    "dbPort": dbPort,
+                    "userName": userName,
+                    "password": password
+                }
+                $.ajax({
+                    type: "POST",
+                    url: "/gen/getTables",
+//            traditional: true,
+                    contentType: "application/json;charset=UTF-8",
+                    data: JSON.stringify(params),
+                    dataType: "json",
+                    success: function (data) {
+                        console.log(data)
+                        var d = data
+                        var strHtml = ""
+                        for (var i = 0; i < d.length; i++) {
+                            strHtml += '<option value="' + d[i].tableName + '">' + d[i].tableName + '(' + d[i].tableComment + ')</option>'
+                        }
+                        $("#tableSel").html(strHtml)
+                    }, error: function (err) {
+
+                    }
+                });
+            },
+            isEmpty: function (obj) {
+                if (typeof obj == "undefined" || obj == null || obj == "") {
+                    return true;
+                } else {
+                    return false;
+                }
+            }
+        }
+    });
+
 </script>
 </html>
