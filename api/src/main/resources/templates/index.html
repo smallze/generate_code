@@ -85,15 +85,15 @@
                     :data="tableList"
                     tooltip-effect="dark"
                     style="width: 100%">
-            <!--<el-table-->
-                    <!--ref="multipleTable"-->
-                    <!--:data="tableList"-->
-                    <!--tooltip-effect="dark"-->
-                    <!--style="width: 100%"-->
-                    <!--@selection-change="handleSelectionChange">-->
+                <!--<el-table-->
+                <!--ref="multipleTable"-->
+                <!--:data="tableList"-->
+                <!--tooltip-effect="dark"-->
+                <!--style="width: 100%"-->
+                <!--@selection-change="handleSelectionChange">-->
                 <!--<el-table-column-->
-                        <!--type="selection"-->
-                        <!--width="55">-->
+                <!--type="selection"-->
+                <!--width="55">-->
                 <!--</el-table-column> -->
                 <el-table-column
                         type="index"
@@ -116,10 +116,16 @@
                 </el-table-column>
                 <el-table-column
                         label="操作"
-                        width="150">
+                        width="300">
                     <template slot-scope="scope">
                         <el-button
-                                @click.native.prevent="exportCode(scope.$index, tableData)"
+                                @click.native.prevent="getTableSql(scope.row)"
+                                type="primary"
+                                size="small">
+                            查看字段
+                        </el-button>
+                        <el-button
+                                @click.native.prevent="exportCode(scope.row)"
                                 type="primary"
                                 size="small">
                             生成代码
@@ -128,12 +134,21 @@
                 </el-table-column>
             </el-table>
             <!--<el-pagination-->
-                    <!--:page-size="15"-->
-                    <!--:pager-count="11"-->
-                    <!--layout="prev, pager, next"-->
-                    <!--:total="tableList.length"-->
-                    <!--style="float:right">-->
+            <!--:page-size="15"-->
+            <!--:pager-count="11"-->
+            <!--layout="prev, pager, next"-->
+            <!--:total="tableList.length"-->
+            <!--style="float:right">-->
             <!--</el-pagination>-->
+
+            <el-dialog :title="dialogTableTitle" :visible.sync="dialogTableVisible">
+                <el-table :data="tableColumns">
+                    <el-table-column property="columnName" label="名称" width="150"></el-table-column>
+                    <el-table-column property="columnComment" label="注释" width="200"></el-table-column>
+                    <el-table-column property="sort" label="排序" width="80"></el-table-column>
+                    <el-table-column property="columnType" label="类型" width="200"></el-table-column>
+                </el-table>
+            </el-dialog>
         </div>
     </div>
 </div>
@@ -150,6 +165,8 @@
             isShow1: true,
             loading1: false,
             isShow2: false,
+            dialogTableTitle: '',
+            dialogTableVisible: false,
             dbTypeList: [{
                 label: 'mysql',
                 value: 'mysql'
@@ -167,7 +184,8 @@
             },
             tableList: [],
             tableName: '',
-            multipleSelection: []
+            multipleSelection: [],
+            tableColumns: []
         },
         methods: {
             connectDB: function () {
@@ -190,16 +208,24 @@
                         {
                             'Content-Type': 'application/json'
                         }
-                }).then(function (resp) {
-                    this_.loading1 = false
-                    console.log(resp.data)
-                    this_.$message({
-                        message: '连接成功',
-                        type: 'success'
-                    });
-                    this_.tableList = resp.data
-                    this_.isShow1 = false
-                    this_.isShow2 = true
+                }).then(function (res) {
+                    let resp = res.data
+                    if (resp.code === 200) {
+                        localStorage.setItem("x-token", resp.data.token)
+                        this_.loading1 = false
+                        this_.$message({
+                            message: '连接成功',
+                            type: 'success'
+                        });
+                        this_.tableList = resp.data.tableList
+                        this_.isShow1 = false
+                        this_.isShow2 = true
+                    } else {
+                        this_.$message({
+                            message: resp.msg,
+                            type: 'error'
+                        });
+                    }
                 }).catch(function (res) {
                     this_.loading1 = false
                     console.log(res)
@@ -228,8 +254,45 @@
             handleSelectionChange(val) {
                 this.multipleSelection = val;
             },
-            exportCode(index, rows) {
-                console.log("export code")
+            getTableSql(row) {
+                let param = {
+                    tableName: row.tableName,
+                    token: localStorage.getItem("x-token")
+                }
+                let this_ = this
+                axios({
+                    url: '/gen/getTableColumns',
+                    method: 'post',
+                    //发送格式为json
+                    data: JSON.stringify(param),
+                    headers:
+                        {
+                            'Content-Type': 'application/json'
+                        }
+                }).then(function (res) {
+                    let resp = res.data
+                    if (resp.code === 200) {
+                        console.log(resp.data)
+                        this_.tableColumns = resp.data
+                        this_.dialogTableVisible = true
+                        this_.dialogTableTitle = row.tableName + ' 字段'
+                    } else {
+                        this_.$message({
+                            message: resp.msg,
+                            type: 'error'
+                        });
+                    }
+                }).catch(function (res) {
+                    this_.loading1 = false
+                    console.log(res)
+                    this_.$message({
+                        message: '连接失败',
+                        type: 'error'
+                    });
+                })
+            },
+            exportCode(row) {
+                console.log("export code" + row)
             }
         }
     })
