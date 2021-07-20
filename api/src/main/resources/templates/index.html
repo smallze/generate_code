@@ -7,8 +7,8 @@
     <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
 </head>
 <style type="text/css">
-    .db-container {
-        margin: 80px 100px;
+    .main-container {
+        margin: 50px 100px;
         text-align: center;
     }
 
@@ -27,61 +27,114 @@
 </style>
 <body>
 <div id="app">
-    <div class="db-container">
-        <el-form ref="form" :model="form" label-width="100px">
-            <el-row>
-                <h2>一键生成代码</h2>
-            </el-row>
-            <el-row>
-                <el-col :span="12">
-                    <el-form-item label="数据库类型">
-                        <el-select v-model="params.dbType" placeholder="请选择" style="width: 100%">
-                            <el-option
-                                    v-for="item in dbTypeList"
-                                    :key="item.value"
-                                    :label="item.label"
-                                    :value="item.value">
-                            </el-option>
-                        </el-select>
-                    </el-form-item>
-                </el-col>
-                <el-col :span="12">
-                    <el-form-item label="数据库名称">
-                        <el-input type="text" name="dbName" id="dbName" v-model="params.dbName"/>
-                    </el-form-item>
-                </el-col>
-            </el-row>
-            <el-row>
-                <el-col :span="12">
-                    <el-form-item label="IP">
-                        <el-input type="text" name="dbIP" id="dbIP" v-model="params.dbIP"/>
-                    </el-form-item>
-                </el-col>
-                <el-col :span="12">
-                    <el-form-item label="端口">
-                        <el-input type="text" name="dbPort" id="dbPort" v-model="params.dbPort"/>
-                    </el-form-item>
-                </el-col>
-            </el-row>
-            <el-row>
-                <el-col :span="12">
-                    <el-form-item label="用户名">
-                        <el-input type="text" name="userName" id="userName" v-model="params.userName"/>
-                    </el-form-item>
-                </el-col>
-                <el-col :span="12">
-                    <el-form-item label="密码">
-                        <el-input type="password" name="password" id="password" v-model="params.password"/>
-                    </el-form-item>
-                </el-col>
-            </el-row>
-            <el-row>
-                <el-button type="primary" @click="connectDB">连接</el-button>
-            </el-row>
-            <!--<el-select v-model>-->
-
-            <!--</el-select>-->
-        </el-form>
+    <div class="main-container">
+        <h2 style="margin-bottom: 30px;">一键生成代码</h2>
+        <div class="db-container" v-show="isShow1">
+            <el-form ref="form" :model="params" label-width="100px" v-loading="loading1">
+                <el-row>
+                    <el-col :span="12">
+                        <el-form-item label="数据库类型">
+                            <el-select v-model="params.dbType" placeholder="请选择" style="width: 100%">
+                                <el-option
+                                        v-for="item in dbTypeList"
+                                        :key="item.value"
+                                        :label="item.label"
+                                        :value="item.value">
+                                </el-option>
+                            </el-select>
+                        </el-form-item>
+                    </el-col>
+                    <el-col :span="12">
+                        <el-form-item label="数据库名称">
+                            <el-input type="text" name="dbName" id="dbName" v-model="params.dbName"/>
+                        </el-form-item>
+                    </el-col>
+                </el-row>
+                <el-row>
+                    <el-col :span="12">
+                        <el-form-item label="IP">
+                            <el-input type="text" name="dbIP" id="dbIP" v-model="params.dbIP"/>
+                        </el-form-item>
+                    </el-col>
+                    <el-col :span="12">
+                        <el-form-item label="端口">
+                            <el-input type="text" name="dbPort" id="dbPort" v-model="params.dbPort"/>
+                        </el-form-item>
+                    </el-col>
+                </el-row>
+                <el-row>
+                    <el-col :span="12">
+                        <el-form-item label="用户名">
+                            <el-input type="text" name="userName" id="userName" v-model="params.userName"/>
+                        </el-form-item>
+                    </el-col>
+                    <el-col :span="12">
+                        <el-form-item label="密码">
+                            <el-input type="password" name="password" id="password" v-model="params.password"/>
+                        </el-form-item>
+                    </el-col>
+                </el-row>
+                <el-row>
+                    <el-button type="primary" @click="connectDB">连接</el-button>
+                </el-row>
+            </el-form>
+        </div>
+        <div class="table-container" v-show="isShow2">
+            <el-table
+                    ref="multipleTable"
+                    :data="tableList"
+                    tooltip-effect="dark"
+                    style="width: 100%">
+            <!--<el-table-->
+                    <!--ref="multipleTable"-->
+                    <!--:data="tableList"-->
+                    <!--tooltip-effect="dark"-->
+                    <!--style="width: 100%"-->
+                    <!--@selection-change="handleSelectionChange">-->
+                <!--<el-table-column-->
+                        <!--type="selection"-->
+                        <!--width="55">-->
+                <!--</el-table-column> -->
+                <el-table-column
+                        type="index"
+                        label="序号"
+                        width="80">
+                </el-table-column>
+                <el-table-column
+                        prop="tableName"
+                        label="表名"
+                        width="200">
+                </el-table-column>
+                <el-table-column
+                        prop="tableComment"
+                        label="表描述"
+                        width="250">
+                </el-table-column>
+                <el-table-column
+                        prop="createTime"
+                        label="创建时间">
+                </el-table-column>
+                <el-table-column
+                        label="操作"
+                        width="150">
+                    <template slot-scope="scope">
+                        <el-button
+                                @click.native.prevent="exportCode(scope.$index, tableData)"
+                                type="primary"
+                                size="small">
+                            生成代码
+                        </el-button>
+                    </template>
+                </el-table-column>
+            </el-table>
+            <!--<el-pagination-->
+                    <!--:page-size="15"-->
+                    <!--:pager-count="11"-->
+                    <!--layout="prev, pager, next"-->
+                    <!--:total="tableList.length"-->
+                    <!--style="float:right">-->
+            <!--</el-pagination>-->
+        </div>
     </div>
 </div>
 </body>
@@ -89,10 +142,14 @@
 <script src="https://cdn.jsdelivr.net/npm/vue@2.5.17/dist/vue.js"></script>
 <!-- 引入element 的组件库-->
 <script src="https://unpkg.com/element-ui/lib/index.js"></script>
+<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
 <script type="text/javascript">
     new Vue({
         el: '#app',
         data: {
+            isShow1: true,
+            loading1: false,
+            isShow2: false,
             dbTypeList: [{
                 label: 'mysql',
                 value: 'mysql'
@@ -101,55 +158,56 @@
                 value: 'oracle'
             }],
             params: {
-                dbType: '',
-                dbName: '',
-                dbIP: '',
-                dbPort: '',
-                userName: '',
-                password: ''
+                dbType: 'mysql',
+                dbName: 'smart_canteen_dev',
+                dbIP: 'localhost',
+                dbPort: '3306',
+                userName: 'root',
+                password: '123456'
             },
             tableList: [],
+            tableName: '',
+            multipleSelection: []
         },
         methods: {
             connectDB: function () {
                 console.log("connect db");
-                var dbType = this.params.dbType;
-                var dbName = this.params.dbName;
-                var dbIP = this.params.dbIP;
-                var dbPort = this.params.dbPort
-                var userName = this.params.userName;
-                var password = this.params.password;
-                if (this.isEmpty(dbType) || this.isEmpty(dbName) || this.isEmpty(dbIP) || this.isEmpty(dbPort) || this.isEmpty(userName) || this.isEmpty(password)) {
-                    alert("请输入相关参数")
+                if (this.isEmpty(this.params.dbType) || this.isEmpty(this.params.dbName) || this.isEmpty(this.params.dbIP) || this.isEmpty(this.params.dbPort) || this.isEmpty(this.params.userName) || this.isEmpty(this.params.password)) {
+                    this.$message({
+                        message: '请输入相关参数',
+                        type: 'warning'
+                    });
                     return false;
                 }
-                var params = {
-                    "dbType": dbType,
-                    "dbName": dbName,
-                    "dbIP": dbIP,
-                    "dbPort": dbPort,
-                    "userName": userName,
-                    "password": password
-                }
-                $.ajax({
-                    type: "POST",
-                    url: "/gen/getTables",
-//            traditional: true,
-                    contentType: "application/json;charset=UTF-8",
-                    data: JSON.stringify(params),
-                    dataType: "json",
-                    success: function (data) {
-                        console.log(data)
-                        var d = data
-                        var strHtml = ""
-                        for (var i = 0; i < d.length; i++) {
-                            strHtml += '<option value="' + d[i].tableName + '">' + d[i].tableName + '(' + d[i].tableComment + ')</option>'
+                this.loading1 = true
+                let this_ = this
+                axios({
+                    url: '/gen/getTables',
+                    method: 'post',
+                    //发送格式为json
+                    data: JSON.stringify(this.params),
+                    headers:
+                        {
+                            'Content-Type': 'application/json'
                         }
-                        $("#tableSel").html(strHtml)
-                    }, error: function (err) {
-
-                    }
-                });
+                }).then(function (resp) {
+                    this_.loading1 = false
+                    console.log(resp.data)
+                    this_.$message({
+                        message: '连接成功',
+                        type: 'success'
+                    });
+                    this_.tableList = resp.data
+                    this_.isShow1 = false
+                    this_.isShow2 = true
+                }).catch(function (res) {
+                    this_.loading1 = false
+                    console.log(res)
+                    this_.$message({
+                        message: '连接失败',
+                        type: 'error'
+                    });
+                })
             },
             isEmpty: function (obj) {
                 if (typeof obj == "undefined" || obj == null || obj == "") {
@@ -157,9 +215,25 @@
                 } else {
                     return false;
                 }
+            },
+            toggleSelection(rows) {
+                if (rows) {
+                    rows.forEach(row => {
+                        this.$refs.multipleTable.toggleRowSelection(row);
+                    });
+                } else {
+                    this.$refs.multipleTable.clearSelection();
+                }
+            },
+            handleSelectionChange(val) {
+                this.multipleSelection = val;
+            },
+            exportCode(index, rows) {
+                console.log("export code")
             }
         }
-    });
+    })
+    ;
 
 </script>
 </html>
