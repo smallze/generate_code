@@ -8,7 +8,7 @@ import java.util.HashMap;
  * @author zzs
  * @date 2021/7/20 16:30
  */
-public class Result extends HashMap<String, Object> {
+public class ResultData extends HashMap<String, Object> {
 
     /**
      * 状态码
@@ -32,12 +32,12 @@ public class Result extends HashMap<String, Object> {
     public static final int ERROR_CODE = 500;
 
 
-    public Result(int code, String msg) {
+    public ResultData(int code, String msg) {
         super.put(CODE_TAG, code);
         super.put(MSG_TAG, msg);
     }
 
-    public Result(int code, String msg, Object data) {
+    public ResultData(int code, String msg, Object data) {
         super.put(CODE_TAG, code);
         super.put(MSG_TAG, msg);
         if (data != null) {
@@ -45,20 +45,24 @@ public class Result extends HashMap<String, Object> {
         }
     }
 
-    public static Result success() {
-        return new Result(SUCCESS_CODE, SUCCESS_MSG);
+    public static ResultData success() {
+        return new ResultData(SUCCESS_CODE, SUCCESS_MSG);
     }
 
-    public static Result success(Object data) {
-        return new Result(SUCCESS_CODE, SUCCESS_MSG, data);
+    public static ResultData success(Object data) {
+        return new ResultData(SUCCESS_CODE, SUCCESS_MSG, data);
     }
 
 
-    public static Result error() {
-        return new Result(ERROR_CODE, ERROR_MSG, null);
+    public static ResultData error() {
+        return new ResultData(ERROR_CODE, ERROR_MSG, null);
     }
 
-    public static Result error(String msg) {
-        return new Result(ERROR_CODE, msg, null);
+    public static ResultData error(String msg) {
+        return new ResultData(ERROR_CODE, msg, null);
+    }
+
+    public static ResultData error(Integer code, String msg) {
+        return new ResultData(code, msg, null);
     }
 }

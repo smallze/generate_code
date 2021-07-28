@@ -210,9 +210,9 @@
                         }
                 }).then(function (res) {
                     let resp = res.data
+                    this_.loading1 = false
                     if (resp.code === 200) {
                         localStorage.setItem("x-token", resp.data.token)
-                        this_.loading1 = false
                         this_.$message({
                             message: '连接成功',
                             type: 'success'

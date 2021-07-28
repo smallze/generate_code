@@ -1,12 +1,12 @@
 package com.azu.generate.controller;
 
-import com.azu.generate.domain.Result;
 import com.azu.generate.domain.TableColumnVO;
 import com.azu.generate.domain.TableVO;
 import com.azu.generate.domain.dto.CommonDTO;
 import com.azu.generate.domain.dto.DBConnectDTO;
 import com.azu.generate.domain.dto.TableColumnDTO;
 import com.azu.generate.domain.vo.ConnectDBVO;
+import com.azu.generate.exception.UnifyException;
 import com.azu.generate.service.GenTableService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -42,22 +42,22 @@ public class GenController {
      */
     @RequestMapping(value = "/getTables", method = RequestMethod.POST)
     @ResponseBody
-    public Result getTables(@RequestBody DBConnectDTO dto) {
+    public ConnectDBVO getTables(@RequestBody DBConnectDTO dto) throws Exception {
         ConnectDBVO connectDBVO = new ConnectDBVO();
         List<TableVO> tables = genTableService.getTableList(dto);
         connectDBVO.setTableList(tables);
         String token = UUID.randomUUID().toString();
         connectDBVO.setToken(token);
         dbLinks.put(token, dto);
-        return Result.success(connectDBVO);
+        return connectDBVO;
     }
 
     @RequestMapping(value = "/getTableColumns", method = RequestMethod.POST)
     @ResponseBody
-    public Result getTableColumns(@RequestBody TableColumnDTO dto) {
+    public List<TableColumnVO> getTableColumns(@RequestBody TableColumnDTO dto) {
         DBConnectDTO connectDTO = (DBConnectDTO) dbLinks.get(dto.getToken());
         List<TableColumnVO> columns = genTableService.getTableColumns(connectDTO, dto.getTableName());
-        return Result.success(columns);
+        return columns;
     }
 
 }
