@@ -1,24 +1,24 @@
 package com.azu.generate.exception;
 
+import com.azu.generate.domain.ResultCode;
+import lombok.Getter;
+
 /**
  * @author zzs
  * @date 2021/7/20 16:27
  */
+@Getter
 public class UnifyException extends RuntimeException {
 
-    private Integer errCode;
+    private int errCode;
     private String errMsg;
 
-    public UnifyException(Integer errCode, String errMsg) {
-        this.errCode = errCode;
-        this.errMsg = errMsg;
+    public UnifyException() {
+        this(ResultCode.SUCCESS);
     }
 
-    public Integer getErrCode() {
-        return errCode;
-    }
-
-    public String getErrMsg() {
-        return errMsg;
+    public UnifyException(ResultCode resultCode) {
+        this.errCode = resultCode.getCode();
+        this.errMsg = resultCode.getMsg();
     }
 }

@@ -1,6 +1,8 @@
 package com.azu.generate.exception;
 
+import com.azu.generate.domain.ResultCode;
 import com.azu.generate.domain.ResultData;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,27 +27,24 @@ public class ResponseAdvice implements ResponseBodyAdvice<Object> {
     private ObjectMapper objectMapper;
 
     @Override
-    public boolean supports(MethodParameter methodParameter, Class<? extends HttpMessageConverter<?>> aClass) {
-        return true;
+    public boolean supports(MethodParameter returnType, Class<? extends HttpMessageConverter<?>> aClass) {
+        // 如果接口返回的类型本身就是Result那就没有必要进行额外的操作，返回false
+        return !returnType.getGenericParameterType().equals(ResultData.class);
     }
 
-    @SneakyThrows
     @Override
-    public Object beforeBodyWrite(Object o, MethodParameter methodParameter, MediaType mediaType, Class<? extends HttpMessageConverter<?>> aClass, ServerHttpRequest serverHttpRequest, ServerHttpResponse serverHttpResponse) {
-        if(o instanceof ResultData){
-            return o;
+    public Object beforeBodyWrite(Object data, MethodParameter returnType, MediaType mediaType, Class<? extends HttpMessageConverter<?>> aClass, ServerHttpRequest serverHttpRequest, ServerHttpResponse serverHttpResponse) {
+        // String类型不能直接包装，所以要进行些特别的处理
+        if (returnType.getGenericParameterType().equals(String.class)) {
+            try {
+                // 将数据包装在Result里后，再转换为json字符串响应给前端
+                return objectMapper.writeValueAsString(ResultData.success(data));
+            } catch (JsonProcessingException e) {
+                throw new UnifyException();
+            }
         }
-        return ResultData.success(o);
-    }
-
-    @ExceptionHandler(UnifyException.class)
-    public ResultData unifyException(UnifyException e) {
-        return ResultData.error(e.getErrCode(), e.getErrMsg());
-    }
-
-    @ExceptionHandler(Exception.class)
-    public ResultData exception(Exception e) {
-        return ResultData.error(e.getMessage());
+        // 将原本的数据包装在ResultVO里
+        return ResultData.success(data);
     }
 
 }
