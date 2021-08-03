@@ -125,6 +125,12 @@
                             查看字段
                         </el-button>
                         <el-button
+                                @click.native.prevent="preview(scope.row)"
+                                type="primary"
+                                size="small">
+                            预览代码
+                        </el-button>
+                        <el-button
                                 @click.native.prevent="exportCode(scope.row)"
                                 type="primary"
                                 size="small">
@@ -144,9 +150,9 @@
             <el-dialog :title="dialogTableTitle" :visible.sync="dialogTableVisible">
                 <el-table :data="tableColumns">
                     <el-table-column property="columnName" label="名称" width="150"></el-table-column>
-                    <el-table-column property="columnComment" label="注释" width="200"></el-table-column>
-                    <el-table-column property="sort" label="排序" width="80"></el-table-column>
                     <el-table-column property="columnType" label="类型" width="200"></el-table-column>
+                    <el-table-column property="sort" label="排序" width="80"></el-table-column>
+                    <el-table-column property="columnComment" label="注释" width="200"></el-table-column>
                 </el-table>
             </el-dialog>
         </div>
@@ -158,7 +164,8 @@
 <!-- 引入element 的组件库-->
 <script src="https://unpkg.com/element-ui/lib/index.js"></script>
 <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
-<script type="text/javascript">
+<script type="module">
+//    import {postJson} from '../static/js/request.js'
     new Vue({
         el: '#app',
         data: {
@@ -199,41 +206,19 @@
                 }
                 this.loading1 = true
                 let this_ = this
-                axios({
-                    url: '/gen/getTables',
-                    method: 'post',
-                    //发送格式为json
-                    data: JSON.stringify(this.params),
-                    headers:
-                        {
-                            'Content-Type': 'application/json'
-                        }
-                }).then(function (res) {
-                    let resp = res.data
+                this.postJson('/gen/getTables', this.params).then(resp => {
                     this_.loading1 = false
-                    if (resp.code === 200) {
-                        localStorage.setItem("x-token", resp.data.token)
-                        this_.$message({
-                            message: '连接成功',
-                            type: 'success'
-                        });
-                        this_.tableList = resp.data.tableList
-                        this_.isShow1 = false
-                        this_.isShow2 = true
-                    } else {
-                        this_.$message({
-                            message: resp.msg,
-                            type: 'error'
-                        });
-                    }
-                }).catch(function (res) {
-                    this_.loading1 = false
-                    console.log(res)
+                    localStorage.setItem("x-token", resp.data.token)
                     this_.$message({
-                        message: '连接失败',
-                        type: 'error'
+                        message: '连接成功',
+                        type: 'success'
                     });
-                })
+                    this_.tableList = resp.data.tableList
+                    this_.isShow1 = false
+                    this_.isShow2 = true
+                }).catch(() => {
+                    this_.loading1 = false;
+                });
             },
             isEmpty: function (obj) {
                 if (typeof obj == "undefined" || obj == null || obj == "") {
@@ -255,48 +240,71 @@
                 this.multipleSelection = val;
             },
             getTableSql(row) {
-                let param = {
-                    tableName: row.tableName,
-                    token: localStorage.getItem("x-token")
+                let params = {
+                    tableName: row.tableName
                 }
                 let this_ = this
-                axios({
-                    url: '/gen/getTableColumns',
-                    method: 'post',
-                    //发送格式为json
-                    data: JSON.stringify(param),
-                    headers:
-                        {
-                            'Content-Type': 'application/json'
-                        }
-                }).then(function (res) {
-                    let resp = res.data
-                    if (resp.code === 200) {
-                        console.log(resp.data)
-                        this_.tableColumns = resp.data
-                        this_.dialogTableVisible = true
-                        this_.dialogTableTitle = row.tableName + ' 字段'
-                    } else {
-                        this_.$message({
-                            message: resp.msg,
-                            type: 'error'
-                        });
-                    }
-                }).catch(function (res) {
-                    this_.loading1 = false
-                    console.log(res)
-                    this_.$message({
-                        message: '连接失败',
-                        type: 'error'
-                    });
+                this.postJson('/gen/getTableColumns', params).then(resp => {
+                    this_.tableColumns = resp.data
+                    this_.dialogTableVisible = true
+                    this_.dialogTableTitle = row.tableName + ' 字段'
                 })
             },
             exportCode(row) {
                 console.log("export code" + row)
+            },
+            preview(row) {
+
+            },
+            postJson(url, params) {
+                let options = {
+                    url: url,
+                    method: 'post',
+                    params
+                }
+                let this_ = this
+                return new Promise((resolve, reject) => {
+                    //创建一个axios实例
+                    const instance = axios.create({
+                        //设置默认根地址
+                        baseURL: '',
+                        //设置请求超时设置
+                        timeout: 10000,
+                        // 设置请求时的header，带上token
+                        headers: {
+                            accessToken: localStorage.getItem('x-token')
+                        }
+                    })
+                    //请求处理
+                    instance(options)
+                        .then(({data: {code, msg, data, result}}) => {
+                            //请求成功时,根据业务判断状态
+                            if (code === 200) {
+                                resolve({code, msg, data, result})
+                                return false
+                            }
+                            this_.$message({
+                                message: msg,
+                                type: 'error'
+                            });
+                            reject({code, msg, data, result})
+                        })
+                        .catch((error) => {
+                            //请求失败时,根据业务判断状态
+                            if (error.response) {
+                                let resError = error.response
+                                let resCode = resError.status
+                                let resMsg = error.message
+                                this_.$message({
+                                    message: resMsg,
+                                    type: 'error'
+                                });
+                                reject({code: resCode, msg: resMsg})
+                            }
+                        })
+                })
             }
         }
     })
-    ;
-
 </script>
 </html>
