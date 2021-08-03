@@ -50,45 +50,37 @@ public class GenTableService {
         return tableList;
     }
 
-    public List<TableColumnVO> getTableColumns(DBConnectDTO dto, String tableName) {
+    public List<TableColumnVO> getTableColumns(DBConnectDTO dto, String tableName) throws Exception {
         List<TableColumnVO> columnVOS = new ArrayList<>();
-        try {
-            DBConnectExt dbConnectExt = DBUtil.getDrive(dto);
-            //加载数据库驱动
-            Class.forName(dbConnectExt.getDriveName());
-            //连接数据库
-            Connection conn = DriverManager.getConnection(dbConnectExt.getConnectUrl(), dto.getUserName(), dto.getPassword());
-            System.out.println("连接成功!");
-            //创建Statement对象
-            Statement stmt = conn.createStatement();
-            //建立结果集
-            XmlReader xmlReader = new XmlReader();
-            String exeSql = xmlReader.getSQLStrByNodeName("getTableColumnList");
-            exeSql = exeSql.replace("tableName", tableName);
-            ResultSet rs = stmt.executeQuery(exeSql);
-            System.out.println("查询成功!");
-            while (rs.next()) {
-                TableColumnVO tableColumnVO = new TableColumnVO();
-                tableColumnVO.setColumnName(rs.getString("column_name"));
-                tableColumnVO.setRequired(rs.getBoolean("is_required"));
-                tableColumnVO.setColumnComment(rs.getString("column_comment"));
-                tableColumnVO.setSort(rs.getInt("sort"));
-                tableColumnVO.setColumnType(rs.getString("column_type"));
-                columnVOS.add(tableColumnVO);
-            }
-            //关闭结果集
-            rs.close();
-            //关闭Statement对象
-            stmt.close();
-            //关闭数据库
-            conn.close();
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        } catch (Exception e) {
-            e.printStackTrace();
+        DBConnectExt dbConnectExt = DBUtil.getDrive(dto);
+        //加载数据库驱动
+        Class.forName(dbConnectExt.getDriveName());
+        //连接数据库
+        Connection conn = DriverManager.getConnection(dbConnectExt.getConnectUrl(), dto.getUserName(), dto.getPassword());
+        System.out.println("连接成功!");
+        //创建Statement对象
+        Statement stmt = conn.createStatement();
+        //建立结果集
+        XmlReader xmlReader = new XmlReader();
+        String exeSql = xmlReader.getSQLStrByNodeName("getTableColumnList");
+        exeSql = exeSql.replace("tableName", tableName);
+        ResultSet rs = stmt.executeQuery(exeSql);
+        System.out.println("查询成功!");
+        while (rs.next()) {
+            TableColumnVO tableColumnVO = new TableColumnVO();
+            tableColumnVO.setColumnName(rs.getString("column_name"));
+            tableColumnVO.setRequired(rs.getBoolean("is_required"));
+            tableColumnVO.setColumnComment(rs.getString("column_comment"));
+            tableColumnVO.setSort(rs.getInt("sort"));
+            tableColumnVO.setColumnType(rs.getString("column_type"));
+            columnVOS.add(tableColumnVO);
         }
+        //关闭结果集
+        rs.close();
+        //关闭Statement对象
+        stmt.close();
+        //关闭数据库
+        conn.close();
         return columnVOS;
     }
 }

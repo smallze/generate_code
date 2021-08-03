@@ -2,15 +2,18 @@ package com.azu.generate.controller;
 
 import com.azu.generate.domain.TableColumnVO;
 import com.azu.generate.domain.TableVO;
-import com.azu.generate.domain.dto.CommonDTO;
 import com.azu.generate.domain.dto.DBConnectDTO;
 import com.azu.generate.domain.dto.TableColumnDTO;
 import com.azu.generate.domain.vo.ConnectDBVO;
-import com.azu.generate.exception.UnifyException;
 import com.azu.generate.service.GenTableService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpRequest;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.context.request.RequestAttributes;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
@@ -40,9 +43,8 @@ public class GenController {
      * @param dto
      * @return
      */
-    @RequestMapping(value = "/getTables", method = RequestMethod.POST)
-    @ResponseBody
-    public ConnectDBVO getTables(@RequestBody DBConnectDTO dto) throws Exception {
+    @PostMapping("/getTables")
+    public ConnectDBVO getTables(DBConnectDTO dto) throws Exception {
         ConnectDBVO connectDBVO = new ConnectDBVO();
         List<TableVO> tables = genTableService.getTableList(dto);
         connectDBVO.setTableList(tables);
@@ -52,12 +54,22 @@ public class GenController {
         return connectDBVO;
     }
 
-    @RequestMapping(value = "/getTableColumns", method = RequestMethod.POST)
-    @ResponseBody
-    public List<TableColumnVO> getTableColumns(@RequestBody TableColumnDTO dto) {
-        DBConnectDTO connectDTO = (DBConnectDTO) dbLinks.get(dto.getToken());
+    @PostMapping("/getTableColumns")
+    public List<TableColumnVO> getTableColumns(TableColumnDTO dto) throws Exception {
+        DBConnectDTO connectDTO = (DBConnectDTO) dbLinks.get(getToken());
         List<TableColumnVO> columns = genTableService.getTableColumns(connectDTO, dto.getTableName());
         return columns;
     }
 
+
+    /**
+     * 获取token
+     *
+     * @return
+     */
+    public static String getToken() {
+        ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+        HttpServletRequest httpServletRequest = attributes.getRequest();
+        return httpServletRequest.getHeader("accessToken");
+    }
 }

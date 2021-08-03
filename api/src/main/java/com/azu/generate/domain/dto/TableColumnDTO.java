@@ -4,7 +4,7 @@ package com.azu.generate.domain.dto;
  * @author zzs
  * @date 2021/7/20 23:53
  */
-public class TableColumnDTO extends CommonDTO{
+public class TableColumnDTO{
 
     private String tableName;
 

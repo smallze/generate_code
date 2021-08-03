@@ -62,7 +62,7 @@ public class ResultData extends HashMap<String, Object> {
         return new ResultData(ERROR_CODE, msg, null);
     }
 
-    public static ResultData error(Integer code, String msg) {
+    public static ResultData error(int code, String msg) {
         return new ResultData(code, msg, null);
     }
 }
