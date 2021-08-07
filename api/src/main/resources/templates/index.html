@@ -147,13 +147,28 @@
             <!--style="float:right">-->
             <!--</el-pagination>-->
 
-            <el-dialog :title="dialogTableTitle" :visible.sync="dialogTableVisible">
+            <!--表结构预览-->
+            <el-dialog :title="dialogTitle1" :visible.sync="dialogVisible1">
                 <el-table :data="tableColumns">
                     <el-table-column property="columnName" label="名称" width="150"></el-table-column>
                     <el-table-column property="columnType" label="类型" width="200"></el-table-column>
                     <el-table-column property="sort" label="排序" width="80"></el-table-column>
                     <el-table-column property="columnComment" label="注释" width="200"></el-table-column>
                 </el-table>
+            </el-dialog>
+
+            <!--代码预览-->
+            <el-dialog :title="dialogTitle2" :visible.sync="dialogVisible2">
+                <el-tabs v-model="preview.activeName">
+                    <el-tab-pane
+                            v-for="(value, key) in preview.data"
+                            :label="key.substring(key.lastIndexOf('/')+1,key.indexOf('.vm'))"
+                            :name="key.substring(key.lastIndexOf('/')+1,key.indexOf('.vm'))"
+                            :key="key"
+                    >
+                        <pre><code class="hljs" v-html="highlightedCode(value, key)"></code></pre>
+                    </el-tab-pane>
+                </el-tabs>
             </el-dialog>
         </div>
     </div>
@@ -172,8 +187,8 @@
             isShow1: true,
             loading1: false,
             isShow2: false,
-            dialogTableTitle: '',
-            dialogTableVisible: false,
+            dialogTitle1: '',
+            dialogVisible1: false,
             dbTypeList: [{
                 label: 'mysql',
                 value: 'mysql'
@@ -192,7 +207,14 @@
             tableList: [],
             tableName: '',
             multipleSelection: [],
-            tableColumns: []
+            tableColumns: [],
+            // 预览参数
+            preview: {
+                open: false,
+                title: "代码预览",
+                data: {},
+                activeName: "domain.java"
+            }
         },
         methods: {
             connectDB: function () {
@@ -246,8 +268,8 @@
                 let this_ = this
                 this.postJson('/gen/getTableColumns', params).then(resp => {
                     this_.tableColumns = resp.data
-                    this_.dialogTableVisible = true
-                    this_.dialogTableTitle = row.tableName + ' 字段'
+                    this_.dialogVisible1 = true
+                    this_.dialogTitle1 = row.tableName + ' 字段'
                 })
             },
             exportCode(row) {
@@ -255,6 +277,13 @@
             },
             preview(row) {
 
+            },
+            /** 高亮显示 */
+            highlightedCode(code, key) {
+                const vmName = key.substring(key.lastIndexOf("/") + 1, key.indexOf(".vm"));
+                var language = vmName.substring(vmName.indexOf(".") + 1, vmName.length);
+                const result = hljs.highlight(language, code || "", true);
+                return result.value || '&nbsp;';
             },
             postJson(url, params) {
                 let options = {
